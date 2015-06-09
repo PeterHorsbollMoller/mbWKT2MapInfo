@@ -1,0 +1,15 @@
+!table
+!version 400
+!charset WindowsLatin1
+
+Definition Table
+  Type NATIVE Charset "WindowsLatin1"
+  Fields 3
+    MI_PRINX Integer ;
+    ID Integer ;
+    WKT Char (254) ;
+begin_metadata
+"\IsReadOnly" = "FALSE"
+"\MapInfo" = ""
+"\MapInfo\TableID" = "faaaed17-e3ae-4745-8469-c5db449f4f26"
+end_metadata

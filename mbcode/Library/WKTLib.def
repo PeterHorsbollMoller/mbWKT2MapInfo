@@ -1,0 +1,5 @@
+Declare Function WKTText2MIObj(ByVal sWKT As String) As Object
+
+Declare Function WKTText2MIPoint(ByVal sWKT As String) As Object
+Declare Function WKTText2MIPLine(ByVal sWKT As String) As Object
+Declare Function WKTText2MIPolygon(ByVal sWKT As String) As Object

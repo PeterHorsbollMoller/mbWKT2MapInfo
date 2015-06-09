@@ -1,0 +1,15 @@
+Declare Function DLGConfigureTable(ByVal sTableName As String) As Logical
+
+Declare Function DLGCTGetTableName() As String
+Declare Sub DLGCTSetColumnNameID(ByVal sColumnName As String)
+Declare Function DLGCTGetColumnNameID() As String
+Declare Function DLGCTGetColumnNameThematic() As String
+Declare Function DLGCTGetLowRangeBrush() As Brush
+Declare Function DLGCTGetHighRangeBrush() As Brush
+Declare Function DLGCTGetNumberOfRanges() As Integer
+
+Declare Function DLGCTGetRanges(arrRanges() As Float) As Integer
+Declare Function DLGCTGetBrushes(arrBrushes() As Brush) As Integer
+
+Declare Sub DLGCTSetCoordsysCode(ByVal sCode As String)
+Declare Function DLGCTGetCoordsysCode() As String

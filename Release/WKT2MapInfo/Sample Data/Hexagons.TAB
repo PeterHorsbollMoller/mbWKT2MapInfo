@@ -1,0 +1,13 @@
+!table
+!version 300
+!charset WindowsLatin1
+
+Definition Table
+  Type ASCII Delimiter "," Titles Charset "WindowsLatin1"
+  Fields 1
+    WKT Char (254) ;
+begin_metadata
+"\IsReadOnly" = "FALSE"
+"\MapInfo" = ""
+"\MapInfo\TableID" = "d7ad2514-0a27-4e79-b48d-f1d18d69cad4"
+end_metadata

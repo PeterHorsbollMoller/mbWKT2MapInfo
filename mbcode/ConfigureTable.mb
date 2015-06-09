@@ -1,0 +1,64 @@
+'***** DIALOG DESIGNER GENERATED CODE. DO NOT EDIT OR REMOVE THIS LINE OR BELOW THIS LINE! *****
+Dialog
+	Title "Configure Table"
+	Width 225 Height 205
+
+Control PopupMenu
+	Id 100
+	Position 9, 19
+	Width 202
+	
+Control StaticText
+	Id 101
+	Position 9, 8
+	Width 27 Height 8
+	Title "Tables"
+	
+Control PopupMenu
+	Id 200
+	Position 9, 47
+	Width 202
+	
+Control StaticText
+	Id 201
+	Position 9, 36
+	Width 38 Height 8
+	Title "Column ID"
+	
+Control PopupMenu
+	Id 300
+	Position 9, 74
+	Width 202
+	
+Control StaticText
+	Id 301
+	Position 9, 64
+	Width 68 Height 8
+	Title "Column for thematic"
+	
+Control ListBox
+	Id 400
+	Position 9, 92
+	Width 163 Height 83
+	
+Control SymbolPicker
+	Id 500
+	Position 177, 92
+	Width 34 Height 31
+	
+Control SymbolPicker
+	Id 600
+	Position 177, 144
+	Width 34 Height 31
+	
+Control OKButton
+	Title "OK"
+	Id 1000
+	Position 105, 179
+	Width 51 Height 14
+	
+Control CancelButton
+	Title "Cancel"
+	Id 2000
+	Position 160, 179
+	Width 51 Height 14

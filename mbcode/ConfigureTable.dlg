@@ -1,0 +1,230 @@
+  <Object type="System.Windows.Forms.Form, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" name="Form1" children="Controls">
+    <Object type="DialogDesigner.ToolboxLib.MapBasicControls.MapBasicCancelButton, DialogDesigner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="CTRL_CMD_CANCEL" children="Controls">
+      <Property name="Title">Cancel</Property>
+      <Property name="ControlCode" />
+      <Property name="Id">2000</Property>
+      <Property name="Name">CTRL_CMD_CANCEL</Property>
+      <Property name="Position">235, 288</Property>
+      <Property name="Size">75, 23</Property>
+      <Property name="Calling" />
+      <Property name="Disable">False</Property>
+      <Property name="Hide">False</Property>
+      <Property name="Text">Cancel</Property>
+      <Property name="UseVisualStyleBackColor">True</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">235, 288</Property>
+      <Property name="TabIndex">10</Property>
+      <Property name="Tag">Inited</Property>
+    </Object>
+    <Object type="DialogDesigner.ToolboxLib.MapBasicControls.MapBasicOKButton, DialogDesigner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="CTRL_CMD_OK" children="Controls">
+      <Property name="Title">OK</Property>
+      <Property name="ControlCode" />
+      <Property name="Id">1000</Property>
+      <Property name="Name">CTRL_CMD_OK</Property>
+      <Property name="Position">154, 288</Property>
+      <Property name="Size">75, 23</Property>
+      <Property name="Calling" />
+      <Property name="Disable">False</Property>
+      <Property name="Hide">False</Property>
+      <Property name="Text">OK</Property>
+      <Property name="UseVisualStyleBackColor">True</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">154, 288</Property>
+      <Property name="TabIndex">9</Property>
+      <Property name="Tag">Inited</Property>
+    </Object>
+    <Object type="DialogDesigner.ToolboxLib.MapBasicControls.MapBasicSymbolPicker, DialogDesigner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="CTRL_SYM_HIGH_RANGE" children="Controls">
+      <Property name="Value" />
+      <Property name="Into" />
+      <Property name="ControlCode" />
+      <Property name="Id">600</Property>
+      <Property name="Name">CTRL_SYM_HIGH_RANGE</Property>
+      <Property name="Position">260, 232</Property>
+      <Property name="Size">50, 50</Property>
+      <Property name="Calling" />
+      <Property name="Disable">False</Property>
+      <Property name="Hide">False</Property>
+      <Property name="Image">
+        <Binary>iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAIBJREFUOE+9ktEOgCAIRf10Pq/HHvofAgTCNk2pdbY7nesetSq/AQBIg0TnyyBQjn3rSXiBg0O7Cyh1RdAycnksIDplKc4JdDRimeZyt0dJxE4QYhIZLc79CpFQ8LKdbpog4dCLXfru9eEriZ/Gyr5zTmA7JyUtn0iU95L2pZZyAu9BhvxNTdL5AAAAAElFTkSuQmCC</Binary>
+      </Property>
+      <Property name="UseVisualStyleBackColor">True</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">260, 232</Property>
+      <Property name="TabIndex">8</Property>
+      <Property name="Tag">Inited</Property>
+    </Object>
+    <Object type="DialogDesigner.ToolboxLib.MapBasicControls.MapBasicSymbolPicker, DialogDesigner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="CTRL_SYM_LOW_RANGE" children="Controls">
+      <Property name="Value" />
+      <Property name="Into" />
+      <Property name="ControlCode" />
+      <Property name="Id">500</Property>
+      <Property name="Name">CTRL_SYM_LOW_RANGE</Property>
+      <Property name="Position">260, 148</Property>
+      <Property name="Size">50, 50</Property>
+      <Property name="Calling" />
+      <Property name="Disable">False</Property>
+      <Property name="Hide">False</Property>
+      <Property name="Image">
+        <Binary>iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAIBJREFUOE+9ktEOgCAIRf10Pq/HHvofAgTCNk2pdbY7nesetSq/AQBIg0TnyyBQjn3rSXiBg0O7Cyh1RdAycnksIDplKc4JdDRimeZyt0dJxE4QYhIZLc79CpFQ8LKdbpog4dCLXfru9eEriZ/Gyr5zTmA7JyUtn0iU95L2pZZyAu9BhvxNTdL5AAAAAElFTkSuQmCC</Binary>
+      </Property>
+      <Property name="UseVisualStyleBackColor">True</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">260, 148</Property>
+      <Property name="TabIndex">7</Property>
+      <Property name="Tag">Inited</Property>
+    </Object>
+    <Object type="DialogDesigner.ToolboxLib.MapBasicControls.MapBasicListBox, DialogDesigner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="CTRL_LST_RANGES" children="Controls">
+      <Property name="ControlCode" />
+      <Property name="Id">400</Property>
+      <Property name="Name">CTRL_LST_RANGES</Property>
+      <Property name="Position">13, 148</Property>
+      <Property name="Size">239, 134</Property>
+      <Property name="Title">
+      </Property>
+      <Property name="FromVariable" />
+      <Property name="Calling" />
+      <Property name="Disable">False</Property>
+      <Property name="Hide">False</Property>
+      <Property name="Value" />
+      <Property name="Into" />
+      <Property name="FormattingEnabled">True</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">13, 148</Property>
+      <Property name="TabIndex">6</Property>
+      <Property name="Tag">Inited</Property>
+    </Object>
+    <Object type="DialogDesigner.ToolboxLib.MapBasicControls.MapBasicPopupMenu, DialogDesigner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="CTRL_LST_COLUMN_THEMATIC" children="Controls">
+      <Property name="ControlCode" />
+      <Property name="Id">300</Property>
+      <Property name="Name">CTRL_LST_COLUMN_THEMATIC</Property>
+      <Property name="Position">13, 120</Property>
+      <Property name="Size">297, 21</Property>
+      <Property name="Title">
+      </Property>
+      <Property name="FromVariable" />
+      <Property name="Calling" />
+      <Property name="Disable">False</Property>
+      <Property name="Value" />
+      <Property name="Into" />
+      <Property name="FormattingEnabled">True</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">13, 120</Property>
+      <Property name="TabIndex">5</Property>
+      <Property name="Tag">Inited</Property>
+    </Object>
+    <Object type="DialogDesigner.ToolboxLib.MapBasicControls.MapBasicStaticText, DialogDesigner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="CTRL_LBL_COLUMN_RANGES" children="Controls">
+      <Property name="ControlCode" />
+      <Property name="Id">301</Property>
+      <Property name="Name">CTRL_LBL_COLUMN_RANGES</Property>
+      <Property name="Position">13, 103</Property>
+      <Property name="Size">100, 13</Property>
+      <Property name="AutoSize">True</Property>
+      <Property name="Title">Column for thematic</Property>
+      <Property name="Hide">False</Property>
+      <Property name="Text">Column for thematic</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">13, 103</Property>
+      <Property name="TabIndex">4</Property>
+      <Property name="Tag">Inited</Property>
+    </Object>
+    <Object type="DialogDesigner.ToolboxLib.MapBasicControls.MapBasicPopupMenu, DialogDesigner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="CTRL_LST_ID_COLUMN" children="Controls">
+      <Property name="ControlCode" />
+      <Property name="Id">200</Property>
+      <Property name="Name">CTRL_LST_ID_COLUMN</Property>
+      <Property name="Position">13, 75</Property>
+      <Property name="Size">297, 21</Property>
+      <Property name="Title">
+      </Property>
+      <Property name="FromVariable" />
+      <Property name="Calling" />
+      <Property name="Disable">False</Property>
+      <Property name="Value" />
+      <Property name="Into" />
+      <Property name="FormattingEnabled">True</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">13, 75</Property>
+      <Property name="TabIndex">3</Property>
+      <Property name="Tag">Inited</Property>
+    </Object>
+    <Object type="DialogDesigner.ToolboxLib.MapBasicControls.MapBasicStaticText, DialogDesigner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="CTRL_LBL_COLUMN_ID" children="Controls">
+      <Property name="ControlCode" />
+      <Property name="Id">201</Property>
+      <Property name="Name">CTRL_LBL_COLUMN_ID</Property>
+      <Property name="Position">13, 58</Property>
+      <Property name="Size">56, 13</Property>
+      <Property name="AutoSize">True</Property>
+      <Property name="Title">Column ID</Property>
+      <Property name="Hide">False</Property>
+      <Property name="Text">Column ID</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">13, 58</Property>
+      <Property name="TabIndex">2</Property>
+      <Property name="Tag">Inited</Property>
+    </Object>
+    <Object type="DialogDesigner.ToolboxLib.MapBasicControls.MapBasicPopupMenu, DialogDesigner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="CTRL_LST_TABLES" children="Controls">
+      <Property name="ControlCode" />
+      <Property name="Id">100</Property>
+      <Property name="Name">CTRL_LST_TABLES</Property>
+      <Property name="Position">13, 30</Property>
+      <Property name="Size">297, 21</Property>
+      <Property name="Title">
+      </Property>
+      <Property name="FromVariable" />
+      <Property name="Calling" />
+      <Property name="Disable">False</Property>
+      <Property name="Value" />
+      <Property name="Into" />
+      <Property name="FormattingEnabled">True</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">13, 30</Property>
+      <Property name="TabIndex">1</Property>
+      <Property name="Tag">Inited</Property>
+    </Object>
+    <Object type="DialogDesigner.ToolboxLib.MapBasicControls.MapBasicStaticText, DialogDesigner, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="CTRL_LBL_TABLES" children="Controls">
+      <Property name="ControlCode" />
+      <Property name="Id">101</Property>
+      <Property name="Name">CTRL_LBL_TABLES</Property>
+      <Property name="Position">13, 13</Property>
+      <Property name="Size">39, 13</Property>
+      <Property name="AutoSize">True</Property>
+      <Property name="Title">Tables</Property>
+      <Property name="Hide">False</Property>
+      <Property name="Text">Tables</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">13, 13</Property>
+      <Property name="TabIndex">0</Property>
+      <Property name="Tag">Inited</Property>
+    </Object>
+    <Property name="ClientSize">331, 331</Property>
+    <Property name="MaximizeBox">False</Property>
+    <Property name="MinimizeBox">False</Property>
+    <Property name="ShowIcon">False</Property>
+    <Property name="Text">Configure Table<Reference name="Form1" /></Property>
+    <Property name="DataBindings">
+      <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+    </Property>
+    <Property name="Name">Form1</Property>
+    <Property name="Tag">Inited</Property>
+  </Object>

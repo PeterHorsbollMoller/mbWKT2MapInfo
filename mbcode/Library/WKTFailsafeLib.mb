@@ -1,0 +1,199 @@
+'*******************************************************************************
+'** 	Created By Peter Horsbøll Møller, Pitney Bowes Software
+'** 	Program:
+'** 	Modul:
+'**
+'*******************************************************************************
+
+'-------------------------------------
+Include "MapBasic.def"
+Include "Icons.def"
+Include "Menu.def"
+'**default constants...
+Include "Defaults.def"
+
+'-------------------------------------
+Include "DEBUGLib.def"
+Include "ERRORLib.def"
+Include "STRINGLib.def"
+Include "TABLELib.def"
+Include "WKTLib.def"
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function WKTText2MIObj(ByVal sWKT As String) As Object
+
+Dim	sType As String
+
+OnError GoTo ErrorOccured
+
+'	POINT (30 10)
+'	LINESTRING (30 10, 10 30, 40 40)
+'	POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))
+'	POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10),(20 30, 35 35, 30 20, 20 30))
+
+	sType = Left$(sWKT, InStr(1, sWKT, " ") - 1)
+
+	Do Case sType
+		Case "POINT"
+			WKTText2MIObj = WKTText2MIPoint(sWKT)
+		Case "LINESTRING"
+			WKTText2MIObj = WKTText2MIPLine(sWKT)
+		Case "POLYGON"
+			WKTText2MIObj = WKTText2MIPolygon(sWKT)
+	End Case
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "WKTText2MIObj")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function WKTText2MIPoint(ByVal sWKT As String) As Object
+
+OnError GoTo ErrorOccured
+
+'	POINT (30 10)
+
+	WKTText2MIPoint = TRUE
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "WKTText2MIPoint")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function WKTText2MIPLine(ByVal sWKT As String) As Object
+
+Dim	sNodes, arrNodes() As String,
+	nSpace, nNode, nNumNodes As Integer,
+	fX, fY As Float,
+	oPLine As Object
+
+OnError GoTo ErrorOccured
+
+'	LINESTRING (30 10, 10 30, 40 40)
+
+	sNodes	= STRINGTrim(Right$(sWKT, Len(sWKT) - Len("POLYGON")))
+	sNodes	= Left$(sNodes, Len(sNodes) - 1)
+	sNodes	= Right$(sNodes, Len(sNodes) - 1)
+
+	nNumNodes	= STRINGSplitAndTrim(sNodes, ",", arrNodes())
+
+	Create PLine
+		Into Variable oPLine
+		0
+
+	For nNode = 1 To nNumNodes
+'		Print nNode & " " & arrNodes(nNode)
+		nSpace 	= InStr(1, arrNodes(nNode), " ")
+		fX		= Val(Left$(arrNodes(nNode), nSpace))
+		fY		= Val(Right$(arrNodes(nNode), Len(arrNodes(nNode)) - nSpace))
+'		Print "    " & fX & "  " & fY
+
+		Alter Object oPLine Node Add (fX, fY)
+	Next
+
+	WKTText2MIPLine = oPLine
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "WKTText2MIPLine")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function WKTText2MIPolygon(ByVal sWKT As String) As Object
+
+Dim	sNodes, arrNodes() As String,
+	nSpace, nNode, nNumNodes, nCoordinateLen As Integer,
+	fX, fY As Float,
+	oPLine, oPolygon As Object
+
+OnError GoTo ErrorOccured
+
+'	POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))
+'	POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10),(20 30, 35 35, 30 20, 20 30))
+'	The second is not yet supported
+
+WKTText2MIPolygon = FALSE
+
+	sNodes	= STRINGTrim(Right$(sWKT, Len(sWKT) - Len("POLYGON")))
+	sNodes	= Right$(sNodes, Len(sNodes) - 2)
+	If Right$(sNodes, 2) = "))" Then
+		sNodes	= Left$(sNodes, Len(sNodes) - 2)
+	ElseIf Right$(sNodes, 1) = ")" Then
+		sNodes	= Left$(sNodes, Len(sNodes) - 1)
+	End If
+
+	nNumNodes	= STRINGSplitAndTrim(sNodes, ",", arrNodes())
+'	Print "Number of nodes: " & nNumNodes
+
+	Create PLine
+		Into Variable oPLine
+		0
+
+	nCoordinateLen	= Len(arrNodes(1))
+
+	For nNode = 1 To nNumNodes
+'		Print nNode & " " & arrNodes(nNode)
+		nSpace	= 0
+		nSpace 	= InStr(1, arrNodes(nNode), " ")
+
+		If nSpace = 0 Then
+			Call DEBUGPrint("WKTText2MIPolygon: Ignoring node as no space was found: " & arrNodes(nNode))
+			Exit For
+'		ElseIf Len(Right$(arrNodes(nNode), Len(arrNodes(nNode)) - nSpace)) < (nCoordinateLen	* 0.15) Then
+'			Print "WKTText2MIPolygon: Ignoring node as second ordinate was to short (< " & FormatNumber$(nCoordinateLen * 0.15) & "): " & arrNodes(nNode)
+'			Exit For
+		Else
+			fX		= Val(Left$(arrNodes(nNode), nSpace))
+			fY		= Val(Right$(arrNodes(nNode), Len(arrNodes(nNode)) - nSpace))
+
+'			Print "    " & fX & "  " & fY
+			Alter Object oPLine Node Add (fX, fY)
+		End If
+	Next
+
+	oPolygon = ConvertToRegion(oPLine)
+
+WKTText2MIPolygon = oPolygon
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "WKTText2MIPolygon")
+	Call ERRShow()
+
+End Function

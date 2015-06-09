@@ -1,0 +1,585 @@
+'*******************************************************************************
+'** 	Created By Peter Horsbøll Møller, Pitney Bowes Software
+'** 	Program:
+'** 	Modul:
+'**
+'*******************************************************************************
+
+'-------------------------------------
+Include "Library\MapBasic.def"
+Include "Library\Icons.def"
+Include "Library\Menu.def"
+'**default constants...
+Include "Library\Defaults.def"
+
+'-------------------------------------
+Include "Library\ARRAYLib.def"
+Include "Library\COLUMNLib.def"
+Include "Library\DEBUGLib.def"
+Include "Library\ERRORLib.def"
+Include "Library\STYLELib.def"
+Include "Library\TABLELib.def"
+
+Include "DLGConfigureTable.def"
+
+Declare Sub CT_Handler_OnLoad
+Declare Sub CT_Handler_OnTablesClicked
+Declare Sub CT_Handler_OnThematicClicked
+Declare Sub CT_Handler_OnRangeBrushClicked
+Declare Sub CT_Handler_OnOKClicked
+
+Define	CTRL_LST_TABLES			100
+Define	CTRL_LST_COLUMNS_ID			200
+Define	CTRL_LST_COORDSYS			300
+Define	CTRL_CHK_ENABLE_THEMATIC		401
+Define	CTRL_LST_COLUMNS_THEMATIC	400
+Define	CTRL_LST_RANGES			500
+Define	CTRL_BRS_LOW_RANGE			600
+Define	CTRL_BRS_HIGH_RANGE			700
+Define	CTRL_CMD_OK				1000
+
+Dim	marrTables(), marrColumnsID(), marrColumnsThematic(), marrRangesString() As String,
+	msTableName, msColumnID, msColumnThematic As String,
+	marrCoordsysCodes(), marrCoordsysNames(), msCoordsysCode As String,
+	mbrsLowRange, mbrsHighRange, marrBrushes() As Brush,
+	marrRanges() As Float,
+	mbRangeBrushSet As Logical
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function DLGConfigureTable(ByVal sTableName As String) As Logical
+
+Dim	nItem As Integer
+
+OnError GoTo ErrorOccured
+
+DLGConfigureTable = FALSE
+
+	Redim marrTables(0)
+	If TABGetListOfNames(TAB_USE_ALL_BUT_IMAGES, marrTables) = 0 Then
+		Note "Please open at least one table!"
+		Exit Function
+	End If
+
+	Call ARRAYAddValueString(marrCoordsysCodes, "WGS84")
+	Call ARRAYAddValueString(marrCoordsysNames, "Longitude/Latitude WGS84")
+	Call ARRAYAddValueString(marrCoordsysCodes, "UTMZ32NE89")
+	Call ARRAYAddValueString(marrCoordsysNames, "UTM Zone 32N ETRS89")
+
+	nItem = ARRAYFindValueString(marrTables, sTableName)
+	If nItem = 0 Then
+		nItem = 1
+	End If
+
+	Dialog
+		Title "Configure Table"
+		Calling CT_Handler_OnLoad
+
+	Control StaticText
+		Position 9, 8		Width 200 Height 8
+		Title "Tables"
+	Control PopupMenu		Id CTRL_LST_TABLES
+		Position 9, 19		Width 202
+		Title From Variable marrTables
+		Value nItem
+		Calling CT_Handler_OnTablesClicked
+
+	Control StaticText
+		Position 9, 36		Width 200 Height 8
+		Title "Column ID"
+	Control PopupMenu		Id CTRL_LST_COLUMNS_ID
+		Position 9, 47		Width 202
+
+	Control StaticText
+		Position 9, 64		Width 200 Height 8
+		Title "Coordinate System"
+	Control PopupMenu		Id CTRL_LST_COORDSYS
+		Title From Variable marrCoordsysNames
+		Position 9, 74		Width 202
+
+	Control Checkbox		Id CTRL_CHK_ENABLE_THEMATIC
+		Position 9, 91		Width 200 Height 8
+		Title "Column for thematic"
+		Calling CT_Handler_OnThematicClicked
+	Control PopupMenu		Id CTRL_LST_COLUMNS_THEMATIC
+		Position 9, 101		Width 202
+		Calling CT_Handler_OnThematicClicked
+
+	Control ListBox		Id CTRL_LST_RANGES
+		Position 9, 119	Width 163 Height 83
+
+	Control BrushPicker		Id CTRL_BRS_LOW_RANGE
+		Position 177, 119	Width 34 Height 31
+		Value DLGCTGetLowRangeBrush()
+		Calling CT_Handler_OnRangeBrushClicked
+
+	Control BrushPicker		Id CTRL_BRS_HIGH_RANGE
+		Position 177, 171	Width 34 Height 31
+		Value DLGCTGetHighRangeBrush()
+		Calling CT_Handler_OnRangeBrushClicked
+
+	Control OKButton		Id CTRL_CMD_OK
+		Position 105, 206	Width 51 Height 14
+		Calling CT_Handler_OnOKClicked
+
+	Control CancelButton	Id 2000
+		Position 160, 206	Width 51 Height 14
+
+	If NOT CommandInfo(CMD_INFO_DLG_OK) Then
+		Exit Function
+	End If
+
+DLGConfigureTable = TRUE
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGConfigureTable")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub CT_Handler_OnLoad
+
+Dim	nCoordsys As Integer
+
+OnError GoTo ErrorOccured
+
+	nCoordsys =  ARRAYFindValueString(marrCoordsysCodes, msCoordsysCode)
+	Alter Control CTRL_LST_COORDSYS Value Maximum(nCoordsys, 1)
+
+	Call CT_Handler_OnTablesClicked
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "CT_Handler_OnLoad")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub CT_Handler_OnTablesClicked
+
+Dim	nItem As Integer
+
+OnError GoTo ErrorOccured
+
+	nItem = ReadControlValue(CTRL_LST_TABLES)
+	If nItem = 0 Then
+		Exit Sub
+	End If
+
+	Alter Control CTRL_CMD_OK Enable
+
+	msTableName	= marrTables(nItem)
+	Redim marrColumnsID(0)
+	Redim marrColumnsThematic(0)
+
+	If COLGetListOfNames(msTableName, CRITERIA_USE_INTEGER + CRITERIA_USE_CHAR, marrColumnsID) = 0 Then
+		Note "This tables holds no columns for ID"
+		Alter Control CTRL_CMD_OK Disable
+
+		Alter Control CTRL_LST_COLUMNS_ID Title "This tables holds no columns for ID"
+		Alter Control CTRL_LST_COLUMNS_ID Disable
+	Else
+		nItem = ARRAYFindValueString(marrColumnsID, msColumnID)
+		If nItem = 0 Then
+			nItem = 1
+		End If
+		Alter Control CTRL_LST_COLUMNS_ID Title From Variable marrColumnsID
+		Alter Control CTRL_LST_COLUMNS_ID Value nItem
+		Alter Control CTRL_LST_COLUMNS_ID Enable
+	End If
+
+'	If COLGetListOfNames(msTableName, CRITERIA_USE_INTEGER, marrColumnsThematic) = 0 Then
+	If COLGetListOfNames(msTableName, CRITERIA_USE_NUMERICAL, marrColumnsThematic) = 0 Then
+'		Note "This tables holds no columns for thematics"
+		Alter Control CTRL_CHK_ENABLE_THEMATIC Disable
+		Alter Control CTRL_CHK_ENABLE_THEMATIC Value FALSE
+
+		Alter Control CTRL_LST_COLUMNS_THEMATIC Title "This tables holds no columns for thematics"
+	Else
+		Alter Control CTRL_CHK_ENABLE_THEMATIC Enable
+		Alter Control CTRL_LST_COLUMNS_THEMATIC Title From Variable marrColumnsThematic
+	End If
+
+	Call CT_Handler_OnThematicClicked
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "CT_Handler_OnTablesClicked")
+	Call ERRShow()
+
+End Sub
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub CT_Handler_OnThematicClicked
+
+Dim	nItem, i As Integer,
+	aCol As Alias
+
+OnError GoTo ErrorOccured
+
+	If ReadControlValue(CTRL_CHK_ENABLE_THEMATIC) Then
+		Alter Control CTRL_LST_COLUMNS_THEMATIC Enable
+
+		Alter Control CTRL_LST_RANGES			Enable
+		Alter Control CTRL_BRS_LOW_RANGE		Enable
+		Alter Control CTRL_BRS_HIGH_RANGE		Enable
+	Else
+		Alter Control CTRL_LST_COLUMNS_THEMATIC Disable
+
+		Alter Control CTRL_LST_RANGES			Disable
+		Alter Control CTRL_BRS_LOW_RANGE		Disable
+		Alter Control CTRL_BRS_HIGH_RANGE		Disable
+		Exit Sub
+	End If
+
+	nItem = ReadControlValue(CTRL_LST_COLUMNS_THEMATIC)
+	If nItem = 0 Then
+		nItem	= 1
+		Alter Control CTRL_LST_COLUMNS_THEMATIC Value nItem
+	End If
+	msColumnThematic	= marrColumnsThematic(nItem)
+
+	If DLGCTGetRanges(marrRanges) > 0 Then
+		Redim marrRangesString(Ubound(marrRanges)/2)
+		For i = 2 To Ubound(marrRanges) Step 2
+			marrRangesString(i/2) = FormatNumber$(marrRanges(i - 1)) & " - " & FormatNumber$(marrRanges(i))
+		Next
+	End If
+
+	Alter Control CTRL_LST_RANGES	Title From Variable marrRangesString
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "CT_Handler_OnThematicClicked")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub CT_Handler_OnRangeBrushClicked
+
+OnError GoTo ErrorOccured
+
+	Do Case TriggerControl()
+		Case CTRL_BRS_HIGH_RANGE
+			mbrsHighRange	= ReadControlValue(CTRL_BRS_HIGH_RANGE)
+			mbrsLowRange	= ReadControlValue(CTRL_BRS_LOW_RANGE)
+
+			mbrsLowRange	= STLChangeBrushPattern(mbrsLowRange, StyleAttr(mbrsHighRange, BRUSH_PATTERN))
+			Alter Control CTRL_BRS_LOW_RANGE	Value mbrsLowRange
+		Case CTRL_BRS_LOW_RANGE
+			mbrsLowRange	= ReadControlValue(CTRL_BRS_LOW_RANGE)
+			mbrsHighRange	= ReadControlValue(CTRL_BRS_HIGH_RANGE)
+
+			mbrsHighRange	= STLChangeBrushPattern(mbrsHighRange, StyleAttr(mbrsLowRange, BRUSH_PATTERN))
+			Alter Control CTRL_BRS_HIGH_RANGE	Value mbrsHighRange
+	End Case
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "CT_Handler_OnRangeBrushClicked")
+	Call ERRShow()
+
+End Sub
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub CT_Handler_OnOKClicked
+
+Dim	nCoordsys As Integer
+
+OnError GoTo ErrorOccured
+
+	If NOT ReadControlValue(CTRL_CHK_ENABLE_THEMATIC) Then
+		msColumnThematic	= ""
+	End If
+
+	nCoordsys	= ReadControlValue(CTRL_LST_COORDSYS)
+	If nCoordsys = 0 Then
+		Note "Please select a coordinate system for the table"
+		Dialog Preserve
+		Exit Sub
+	End If
+
+	msCoordsysCode	= marrCoordsysCodes(nCoordsys)
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "CT_Handler_OnOKClicked")
+	Call ERRShow()
+
+End Sub
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function DLGCTGetTableName() As String
+
+OnError GoTo ErrorOccured
+
+	DLGCTGetTableName = msTableName
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGCTGetTableName")
+	Call ERRShow()
+
+End Function
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub DLGCTSetColumnNameID(ByVal sColumnName As String)
+
+OnError GoTo ErrorOccured
+
+	msColumnID	= sColumnName
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGCTSetColumnNameID")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+Function DLGCTGetColumnNameID() As String
+
+OnError GoTo ErrorOccured
+
+	DLGCTGetColumnNameID = msColumnID
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGCTGetColumnNameID")
+	Call ERRShow()
+
+End Function
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function DLGCTGetColumnNameThematic() As String
+
+OnError GoTo ErrorOccured
+
+	DLGCTGetColumnNameThematic = msColumnThematic
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGCTGetColumnNameThematic")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function DLGCTGetLowRangeBrush() As Brush
+
+OnError GoTo ErrorOccured
+
+	If NOT mbRangeBrushSet Then
+		mbrsLowRange		= MakeBrush (2, 16765136, 16765136)
+		mbrsHighRange		= MakeBrush (2, 9437184, 9437184)
+		mbRangeBrushSet 	= TRUE
+	End If
+
+	DLGCTGetLowRangeBrush = mbrsLowRange
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGCTGetLowRangeBrush")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function DLGCTGetHighRangeBrush() As Brush
+
+OnError GoTo ErrorOccured
+
+	If NOT mbRangeBrushSet Then
+		mbrsLowRange		= MakeBrush (2, 16765136, 16765136)
+		mbrsHighRange		= MakeBrush (2, 9437184, 9437184)
+		mbRangeBrushSet 	= TRUE
+	End If
+
+	DLGCTGetHighRangeBrush = mbrsHighRange
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGCTGetHighRangeBrush")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function DLGCTGetNumberOfRanges() As Integer
+
+OnError GoTo ErrorOccured
+
+	DLGCTGetNumberOfRanges = 5
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGCTGetNumberOfRanges")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function DLGCTGetRanges(arrRanges() As Float) As Integer
+
+Dim	aCol As Alias
+
+OnError GoTo ErrorOccured
+
+DLGCTGetRanges = 0
+
+	aCol	= msTableName & "." & msColumnThematic
+	Create Ranges
+		From msTableName
+		With aCol
+		Use "StdDev"	'"Equal Ranges" '| "Equal Count" | "Natural Break" | "StdDev" } ]
+		'[ Quantile Using q_expr ]
+		Number DLGCTGetNumberOfRanges()
+		Round 1	'TCGetRoundedTo()	'1
+		Into Variable arrRanges
+
+DLGCTGetRanges = DLGCTGetNumberOfRanges()
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGCTGetRanges")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function DLGCTGetBrushes(arrBrushes() As Brush) As Integer
+
+OnError GoTo ErrorOccured
+
+DLGCTGetBrushes = 0
+
+	Create Styles
+		From Brush DLGCTGetLowRangeBrush()
+		To Brush DLGCTGetHighRangeBrush()
+		Vary Color By "RGB"	' | "HSV" } | Background By { "RGB" | "HSV" } | Size By { "Log" | "Sqrt" | "Constant" }}
+		Number DLGCTGetNumberOfRanges()
+		'[ Inflect At range_number With { Pen ... | Brush ... | Symbol ...} ]
+		Into Variable arrBrushes
+
+	DLGCTGetBrushes = DLGCTGetNumberOfRanges()
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGCTGetBrushes")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub DLGCTSetCoordsysCode(ByVal sCode As String)
+
+OnError GoTo ErrorOccured
+
+	msCoordsysCode	= sCode
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGCTSetCoordsysCode")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function DLGCTGetCoordsysCode() As String
+
+OnError GoTo ErrorOccured
+
+	DLGCTGetCoordsysCode = msCoordsysCode
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "DLGCTGetCoordsysCode")
+	Call ERRShow()
+
+End Function

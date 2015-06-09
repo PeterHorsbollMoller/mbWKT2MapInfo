@@ -1,0 +1,663 @@
+'*******************************************************************************
+'**   Created by Peter Horsbøll Møller, Pitney Bowes Software
+'** 	Program:
+'** 	Modul:
+'**
+'*******************************************************************************
+
+'-------------------------------------
+Include "Library\MapBasic.def"
+Include "Library\Icons.def"
+Include "Library\Menu.def"
+'**default constants...
+Include "Library\Defaults.def"
+
+Define xProgram 		"WKT2MapInfo"
+Define xProgramMenu		"WKT2MapInfo"
+Define xVersion 		"1.0"
+Define xYear			"2015"
+Define xAddToMenuBar	FALSE
+
+Define FILE_INI			GetFolderPath$(FOLDER_MI_PREFERENCE) & xProgram & ".ini"
+Define FILE_DBG			ApplicationDirectory$() & xProgram & ".dbg"
+'Define FILE_DLL			ApplicationDirectory$() & xProgram & ".dll"
+Define FILE_PAD			GetFolderPath$(FOLDER_MI_PREFERENCE) & xProgram & ".btp"
+
+'-------------------------------------
+Include "Library\COLUMNLib.def"
+Include "Library\CONFIGFILELib.def"
+Include "Library\DATETIMELib.def"
+Include "Library\DBMSUtilityLib.def"
+Include "Library\DEBUGLib.def"
+Include "Library\ERRORLib.def"
+Include "Library\MAPPERLib.def"
+Include "Library\ProgramInfo.def"
+Include "Library\STRINGLib.def"
+Include "Library\TABLELib.def"
+Include "Library\WKTLib.def"
+Include "Library\Dialogs\DLGSelectTable.def"
+
+Include "DLGConfigureTable.def"
+
+'-----------------------------------------------------------------------------------------
+Declare Sub Main
+Declare Sub EndProgram
+
+Declare Sub MENUOpenTableWKT2MIObj
+Declare Sub MENUTableWKT2MIObj
+Declare Function MENUCreateObjectsOnTable(ByVal sTableName As String) As Logical
+
+Declare Function MENUSaveCopyAs(		ByVal sTab As String
+								) As String
+Declare Function MENUUpdateSpatial(	ByVal sTab As String
+								) As Logical
+
+Declare Sub MENUGetDBMSSettingsFromTable(ByVal sTab As String)
+Declare Function MENUUpdateSpatialViaDBMS(	  ByVal sTab As String
+									, ByVal sCol As String
+									) As Logical
+Declare Function MENUGetSchemaAndTableFromDBMSQuery(	  ByVal sQuery As String
+											, sSchema As String
+											, sTable As String
+											) As Logical
+Declare Function MENUGetWKTStringFromDBMS(	  ByVal nConnection As Integer
+									, ByVal sSchema As String, ByVal sDBTable As String
+									, ByVal sPrimaryKeyColumn As String, ByVal sWKTColumn As String
+									, ByVal sPrimaryID As String, ByVal nColumnInfoType As Integer
+									) As String
+
+Dim	msConnString, msQuery As String
+'**********************************************************************************************''
+'**   Created by Peter Horsbøll Møller, Pitney Bowes Software
+'
+'**********************************************************************************************''
+Sub Main
+
+OnError GoTo ErrorOccured
+
+	'***Initializing ApplicationInfo
+	Call PRGISetApplicationName(xProgram)
+	Call PRGISetApplicationVersion(xVersion)
+	Call PRGISetApplicationCopyrightYear(xYear)
+	Call PRGISetApplicationDevelopedBy("Peter Horsbøll Møller")
+
+	'***Enabling Debug if file exists
+	Call DEBUGEnableByFile(FILE_DBG)
+
+	Create Menu xProgramMenu As
+		"Open and map a table with WKT..."
+			HelpMsg "Open and map a table with Well Known Text features"
+			Calling MENUOpenTableWKT2MIObj,
+		"Map a table with WKT..."
+			HelpMsg "Map a table with Well Known Text features"
+			Calling MENUTableWKT2MIObj,
+		"(-",
+		"End program"
+			Calling EndProgram,
+		"About..."
+			Calling PRGIAboutbox
+
+	If xAddToMenuBar Then
+		'Remove the Window menu and Help menu
+		Alter Menu Bar Remove ID 6, ID 7
+		'Add the custom menu, then the Window & Help menus
+		Alter Menu Bar Add xProgramMenu, ID 6, ID 7
+	Else
+		Alter Menu ID 4
+			Add "(-", xProgramMenu  As xProgramMenu
+	End If
+
+	Call DLGCTSetColumnNameID(CONFIGReadKey(FILE_INI, "DATABASE", "PRINX COLUMN"))
+	Call DLGCTSetCoordsysCode(CONFIGReadKey(FILE_INI, "DATABASE", "COORDSYS"))
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "Main")
+	Call ERRShow()
+
+End Sub
+
+'****************************************
+'**   Created by Peter Horsbøll Møller, Pitney Bowes Software
+'**   Ending MapBasic application
+'****************************************
+Sub EndProgram
+
+OnError GoTo ErrorOccured
+
+	End Program
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "EndProgram")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub MENUOpenTableWKT2MIObj
+
+Dim	sTab As String,
+	nTabs As Integer
+
+OnError GoTo ErrorOccured
+
+	nTabs	= NumTables()
+	Run Menu Command M_FILE_OPEN
+
+	If nTabs = NumTables() Then
+		Note "Please open a new table!"
+		Exit Sub
+	End If
+
+	sTab = TableInfo(NumTables(), TAB_INFO_NAME)
+	If NOT MENUCreateObjectsOnTable(sTab) Then
+		Exit Sub
+	End If
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUOpenTableWKT2MIObj")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub MENUTableWKT2MIObj
+
+OnError GoTo ErrorOccured
+
+	If NumTables() = 0 Then
+		Note "Please open a new table!"
+		Exit Sub
+	End If
+
+	If NOT MENUCreateObjectsOnTable("") Then
+		Exit Sub
+	End If
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUTableWKT2MIObj")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function MENUCreateObjectsOnTable(ByVal sTableName As String) As Logical
+
+Dim	sTab, sTabFile As String,
+	nMID As Integer,
+	aCol As Alias,
+	arrRanges() As Float,
+	arrBrushs() As Brush
+
+OnError GoTo ErrorOccured
+
+MENUCreateObjectsOnTable = FALSE
+
+	If NOT DLGConfigureTable(sTableName) Then
+		Exit Function
+	End If
+
+	sTab	= DLGCTGetTableName()
+
+	'**Read Connection String and Query from a DMBS table (linked or Live)
+	Call MENUGetDBMSSettingsFromTable(sTab)
+
+	If TableInfo(sTab, TAB_INFO_READONLY) Then
+		sTab = MENUSaveCopyAs(sTab)
+		If sTab = "" Then
+			Note "Failed to save a copy of the table!"
+			Exit Sub
+		End If
+	End If
+
+	If NOT TableInfo(sTab, TAB_INFO_MAPPABLE) Then
+		If TableInfo(sTab, TAB_INFO_TYPE) = TAB_TYPE_LINKED Then
+			sTab = MENUSaveCopyAs(sTab)
+			If sTab = "" Then
+				Note "Failed to save a copy of the table!"
+				Exit Sub
+			End If
+		End If
+
+		Do Case DLGCTGetCoordsysCode()
+			Case "WGS84"
+				Create Map
+					For sTab
+					CoordSys Earth Projection 1, 104
+			Case "UTMZ32NE89"
+				Create Map
+					For sTab
+					CoordSys Earth Projection 8, 115, 7, 9.0, 0, 0.9996, 500000, 0
+			Case Else
+				Create Map
+					For sTab
+					CoordSys Earth Projection 1, 104
+		End Case
+
+	End If
+
+	Set CoordSys Table sTab
+
+	If NOT MENUUpdateSpatial(sTab) Then
+		Note "No spatial column found in the table that you selected!"
+		Exit Sub
+	End If
+
+	nMID = MAPFrontMostWindow()
+	If nMID = 0 Then
+		Map From sTab
+		nMID = FrontWindow()
+	Else
+		Add Map
+			Window nMID
+			Auto
+			Layer sTab
+	End If
+
+	Set Map
+		Window nMID
+		Zoom Entire layer sTab
+
+	If DLGCTGetColumnNameThematic() <> "" Then
+		If DLGCTGetRanges(arrRanges()) > 0 Then
+			If DLGCTGetBrushes(arrBrushs()) > 0 Then
+
+				aCol	= sTab & "." & DLGCTGetColumnNameThematic()
+				Shade Window nMID
+					sTab
+					with aCol
+					Ignore 0
+					Ranges From Variable arrRanges
+					Style Variable arrBrushs
+
+				Set Legend
+					Window nMID
+					Layer Prev
+					Display On 'Shades on symbols off lines off
+					Count on
+
+				Set Window Legend Show
+			End If
+		End If
+	End If
+
+	MENUCreateObjectsOnTable = TRUE
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUCreateObjectsOnTable")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function MENUSaveCopyAs(ByVal sTab As String) As String
+
+Dim	sTabFile, sTabNew As String
+
+OnError GoTo ErrorOccured
+
+MENUSaveCopyAs = ""
+
+	sTabFile	= TableInfo(sTab, TAB_INFO_TABFILE)
+	sTabFile	= PathToDirectory$(sTabFile)
+				& Left$(PathToFileName$(sTabFile), Len(PathToFileName$(sTabFile)) - 4)
+				& " " & DATEGetDateAsYYYYMMDD(CurDate(), "-") & ".tab"
+	Commit Table sTab As sTabFile
+	Open Table sTabFile
+	sTabNew = TableInfo(NumTables(), TAB_INFO_NAME)
+
+	MENUSaveCopyAs = sTabNew
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUSaveCopyAs")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function MENUUpdateSpatial(ByVal sTab As String) As Logical
+
+Dim	arrCols(0) As String,
+	aCol As Alias,
+	i As Integer
+
+OnError GoTo ErrorOccured
+
+MENUUpdateSpatial = FALSE
+
+	Redim arrCols(2)
+	arrCols(1)	= "WKT"
+	arrCols(2)	= "GEO"
+	If CONFIGReadKey(FILE_INI, "DATABASE", "WKT COLUMN") <> "" Then
+		Redim arrCols(3)
+		arrCols(3)	= CONFIGReadKey(FILE_INI, "DATABASE", "WKT COLUMN")
+	End If
+
+	For i = 1 To Ubound(arrCols)
+		Call DEBUGPrint("Looking for WKT columns: " & i & ": " & arrCols(i))
+
+		aCol	= sTab & "." & arrCols(i)
+		If COLExists(sTab, arrCols(i)) Then
+			If ColumnInfo(sTab, arrCols(i), COL_INFO_TYPE) = COL_TYPE_CHAR Then
+				If ColumnInfo(sTab, arrCols(i), COL_INFO_WIDTH) = 254 Then
+					If CONFIGReadKey(FILE_INI, "DATABASE", "WKT DATABASE LOOKUP") = "1" Then
+						Call DEBUGPrint("Updating OBJ via DBMS Lookup")
+						If MENUUpdateSpatialViaDBMS(sTab, arrCols(i)) Then
+							MENUUpdateSpatial = TRUE
+							Exit Function
+						End If
+					Else
+						Call DEBUGPrint("1. Updating OBJ via WKT Column")
+						Set Table sTab FastEdit On Undo Off
+						Update sTab Set OBJ = WKTText2MIObj(aCol)
+						Commit Table sTab
+						MENUUpdateSpatial = TRUE
+						Exit Function
+					End If
+				Else
+					Call DEBUGPrint("2. Updating OBJ via WKT Column")
+					Set Table sTab FastEdit On Undo Off
+					Update sTab Set OBJ = WKTText2MIObj(aCol)
+					Commit Table sTab
+					MENUUpdateSpatial = TRUE
+					Exit Function
+				End If
+			End If
+		End If
+	Next
+
+	If COLExists(sTab, "LONG") AND COLExists(sTab, "LAT") Then
+		Set Table sTab FastEdit On Undo Off
+		Update sTab Set OBJ = CreatePoint(LONG, LAT)
+		Commit Table sTab
+		MENUUpdateSpatial = TRUE
+		Exit Function
+	End If
+
+	If COLExists(sTab, "LONGITUDE") AND COLExists(sTab, "LATITUDE") Then
+		Set Table sTab FastEdit On Undo Off
+		Update sTab Set OBJ = CreatePoint(LONGITUDE, LATITUDE)
+		Commit Table sTab
+		MENUUpdateSpatial = TRUE
+		Exit Function
+	End If
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUUpdateSpatial")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub MENUGetDBMSSettingsFromTable(ByVal sTab As String)
+
+OnError GoTo ErrorOccured
+
+	msConnString	= ""
+	msQuery 		= ""
+
+	msConnString	= DBUGetConnectionStringFromTable(sTab)
+	msQuery 		= DBUGetQueryFromTable(sTab)
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUGetDBMSSettingsFromTable")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function MENUUpdateSpatialViaDBMS(	  ByVal sTab As String
+							, ByVal sCol As String
+							) As Logical
+
+Dim	sPrimaryKeyColumn, sSchema, sDBTable As String,
+	nConnection, nColumnInfoType As Integer,
+	aPrimaryID As Alias
+
+OnError GoTo ErrorOccured
+
+MENUUpdateSpatialViaDBMS = FALSE
+
+	nConnection	= 0
+	If msConnString <> "" Then
+		nConnection	= DBUFindOpenConnection(msConnString, "ODBC")
+	End If
+
+	If nConnection = 0 Then
+		Note "Connection for this table could not be found. Please open a new connection to the database!"
+		nConnection = Server_Connect("ODBC", "DLG=1")
+
+		If nConnection = 0 Then
+			Exit Function
+		End If
+	End If
+
+	Call DEBUGPrint("MENUUpdateSpatialViaDBMS: Table Query: " & msQuery)
+	sSchema	= ""
+	sDBTable	= ""
+	If NOT MENUGetSchemaAndTableFromDBMSQuery(msQuery, sSchema, sDBTable) Then
+		Exit Function
+	End If
+	If sDBTable = "" Then
+		Exit Function
+	End If
+
+	sPrimaryKeyColumn	= DLGCTGetColumnNameID()
+	If sPrimaryKeyColumn = "" Then
+		sPrimaryKeyColumn	= "ID"
+	End If
+	If NOT COLExists(sTab, sPrimaryKeyColumn) Then
+		Note "This table doesn't seem to have any primary key column! The process can't continue!"
+		Exit Sub
+	End If
+	aPrimaryID		= sTab & "." & sPrimaryKeyColumn
+	nColumnInfoType	= ColumnInfo(sTab, sPrimaryKeyColumn, COL_INFO_TYPE)
+
+	Set Table sTab FastEdit On Undo Off
+	Update sTab
+		Set OBJ = WKTText2MIObj(MENUGetWKTStringFromDBMS(nConnection, sSchema, sDBTable, sPrimaryKeyColumn, sCol, aPrimaryID, nColumnInfoType))
+	Commit Table sTab
+
+MENUUpdateSpatialViaDBMS = TRUE
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUUpdateSpatialViaDBMS")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function MENUGetSchemaAndTableFromDBMSQuery(	  ByVal sQuery As String
+									, sSchema As String
+									, sTable As String
+									) As Logical
+
+Dim	nChar, nElements As Integer,
+	arrElements() As String
+
+OnError GoTo ErrorOccured
+
+MENUGetSchemaAndTableFromDBMSQuery = FALSE
+
+	'"\DATALINK\Query" = "select ""PLAN_NO"", ""PLAN_NAME"", ""PLAN_ID"", ""MUNI_CODE"", ""PLAN_TYPE"", ""USE_GENERIC"", ""USE_SPECIFIC"", ""USE_DEFINITE"", ""ZONES"", ""DISTRICT"", ""TYPE"", ""PDF"", ""DOCLINK"", ""CREATED_BY"", ""CREATED_DATE"", ""CHANGED_BY"","
+	'"\DATALINK\Query\+1" = " ""CHANGED_DATE"", ""MI_STYLE"", ""MI_PRINX"", ""OBJECT"" from ""UKGIS"".""MAPS"".""PlanningZones"""
+
+	sSchema 	= ""
+	sTable 	= ""
+
+'	Call DEBUGPrint("0: " & sQuery)
+'	Call DEBUGPrint("0A: " & UCase$(sQuery))
+	nChar = InStr(1, UCase$(sQuery), "FROM")
+	If nChar > 0 Then
+		sQuery	= Mid$(sQuery, nChar + Len("From "), Len(sQuery))
+'		Call DEBUGPrint("1: " & sQuery)
+
+		nChar = InStr(1, UCase$(sQuery), "WHERE")
+		If nChar > 0 Then
+			sQuery	= Mid$(sQuery, nChar + Len("Where "), Len(sQuery))
+'			Call DEBUGPrint("2: " & sQuery)
+
+		Else
+			nChar = InStr(1, UCase$(sQuery), "GROUP BY")
+			If nChar > 0 Then
+				sQuery	= Mid$(sQuery, nChar + Len("Group By "), Len(sQuery))
+'				Call DEBUGPrint("3: " & sQuery)
+
+			Else
+				nChar = InStr(1, UCase$(sQuery), "ORDER BY")
+				If nChar > 0 Then
+					sQuery	= Mid$(sQuery, nChar + Len("Order By "), Len(sQuery))
+'					Call DEBUGPrint("4: " & sQuery)
+				End If
+			End If
+		End If
+
+		sQuery = STRINGReplace(sQuery, eye, "")
+'		Call DEBUGPrint("5: " & sQuery)
+
+		nElements	= STRINGSplitAndTrim(sQuery, ".", arrElements())
+'		Call DEBUGPrint("Elements: " & nElements)
+
+		Do Case nElements
+			Case 0
+				Exit Function
+			Case 1
+				sTable	= arrElements(1)
+			Case 2
+				sSchema	= arrElements(1)
+				sTable	= arrElements(2)
+			Case Else
+				sSchema	= arrElements(nElements - 1)
+				sTable	= arrElements(nElements)
+		End Case
+	End If
+
+MENUGetSchemaAndTableFromDBMSQuery = TRUE
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUGetSchemaAndTableFromDBMSQuery")
+	Call ERRShow()
+
+End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function MENUGetWKTStringFromDBMS(	  ByVal nConnection As Integer
+							, ByVal sSchema As String, ByVal sDBTable As String
+							, ByVal sPrimaryKeyColumn As String, ByVal sWKTColumn As String
+							, ByVal sPrimaryID As String, ByVal nColumnInfoType As Integer
+							) As String
+
+Dim	nStmt, nCol, nNumCols As Integer,
+	sQuery, sWKT As String
+
+OnError GoTo ErrorOccured
+
+MENUGetWKTStringFromDBMS = FALSE
+
+	If sSchema = "" Then
+		sQuery	= "Select " & sWKTColumn
+					& " From " & sDBTable
+	Else
+		sQuery	= "Select " & sWKTColumn
+					& " From " & sSchema & "." & sDBTable
+	End If
+
+	If nColumnInfoType = COL_TYPE_CHAR Then
+		sQuery	= sQuery
+					& " Where " & sPrimaryKeyColumn & " = '" & sPrimaryID & "'"
+	Else
+		sQuery	= sQuery
+					& " Where " & sPrimaryKeyColumn & " = " & sPrimaryID
+	End If
+
+	'Call DEBUGPrint("MENUGetWKTStringFromDBMS sQuery: " & sQuery)
+
+	nStmt	= Server_Execute(nConnection, sQuery)
+	nNumCols	= Server_NumCols(nStmt)
+
+	Server nStmt Fetch Next
+	For nCol = 1 To nNumCols
+		If Server_ColumnInfo(nStmt, nCol, SRV_COL_INFO_TYPE) IN (SRV_COL_TYPE_CHAR, SRV_COL_TYPE_FIXED_LEN_STRING) Then
+
+			'arrColumnNames(nCount)	= Server_ColumnInfo(nStmt, nCol, SRV_COL_INFO_NAME)
+			sWKT		= Server_ColumnInfo(nStmt, nCol, SRV_COL_INFO_VALUE)
+		End If
+	Next
+
+	Server nStmt Close
+
+	MENUGetWKTStringFromDBMS = sWKT
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUGetWKTStringFromDBMS")
+	Call ERRShow()
+
+End Function
