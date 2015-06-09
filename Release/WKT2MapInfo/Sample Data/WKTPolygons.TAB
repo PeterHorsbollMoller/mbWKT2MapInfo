@@ -5,11 +5,11 @@
 Definition Table
   Type NATIVE Charset "WindowsLatin1"
   Fields 3
-    MI_PRINX Integer ;
+    MI_PRINX Integer Index 1 ;
     ID Integer ;
     WKT Char (254) ;
 begin_metadata
 "\IsReadOnly" = "FALSE"
 "\MapInfo" = ""
-"\MapInfo\TableID" = "faaaed17-e3ae-4745-8469-c5db449f4f26"
+"\MapInfo\TableID" = "11802587-8139-4e7f-b14f-4bb50a8426b3"
 end_metadata

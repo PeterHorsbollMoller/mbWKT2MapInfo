@@ -65,6 +65,8 @@ DLGConfigureTable = FALSE
 		Exit Function
 	End If
 
+	Redim marrCoordsysCodes(0)
+	Redim marrCoordsysNames(0)
 	Call ARRAYAddValueString(marrCoordsysCodes, "WGS84")
 	Call ARRAYAddValueString(marrCoordsysNames, "Longitude/Latitude WGS84")
 	Call ARRAYAddValueString(marrCoordsysCodes, "UTMZ32NE89")
