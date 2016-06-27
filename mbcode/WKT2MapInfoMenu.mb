@@ -14,8 +14,8 @@ Include "Library\Defaults.def"
 
 Define xProgram 		"WKT2MapInfo"
 Define xProgramMenu		"WKT2MapInfo"
-Define xVersion 		"1.0.1"
-Define xYear			"2015"
+Define xVersion 		"1.1"
+Define xYear			"2016"
 Define xAddToMenuBar	FALSE
 
 Define FILE_INI			GetFolderPath$(FOLDER_MI_PREFERENCE) & xProgram & ".ini"
@@ -248,6 +248,14 @@ MENUCreateObjectsOnTable = FALSE
 				Create Map
 					For sTab
 					CoordSys Earth Projection 8, 115, 7, 9.0, 0, 0.9996, 500000, 0
+			Case "EPSG:5846"
+				Create Map
+					For sTab
+					CoordSys Earth Projection 8, 33, 7, 12.00, 0, 1, 150000, 0
+			Case "EPSG:27700"
+				Create Map
+					For sTab
+					CoordSys Earth Projection 8, 79, 7, -2, 49, 0.9996012717, 400000, -100000
 			Case Else
 				Create Map
 					For sTab
@@ -383,7 +391,7 @@ MENUUpdateSpatial = FALSE
 							Exit Function
 						End If
 					Else
-						Call DEBUGPrint("1. Updating OBJ via WKT Column")
+						Call DEBUGPrint("1. Updating OBJ via WKT Column in " & sTab)
 						Set Table sTab FastEdit On Undo Off
 						Update sTab Set OBJ = WKTText2MIObj(aCol)
 						Commit Table sTab
@@ -391,7 +399,7 @@ MENUUpdateSpatial = FALSE
 						Exit Function
 					End If
 				Else
-					Call DEBUGPrint("2. Updating OBJ via WKT Column")
+					Call DEBUGPrint("2. Updating OBJ via WKT Column in " & sTab)
 					Set Table sTab FastEdit On Undo Off
 					Update sTab Set OBJ = WKTText2MIObj(aCol)
 					Commit Table sTab

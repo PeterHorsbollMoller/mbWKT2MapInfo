@@ -68,9 +68,13 @@ DLGConfigureTable = FALSE
 	Redim marrCoordsysCodes(0)
 	Redim marrCoordsysNames(0)
 	Call ARRAYAddValueString(marrCoordsysCodes, "WGS84")
-	Call ARRAYAddValueString(marrCoordsysNames, "Longitude/Latitude WGS84")
+	Call ARRAYAddValueString(marrCoordsysNames, "Longitude/Latitude WGS84, EPGS:4326")
+	Call ARRAYAddValueString(marrCoordsysCodes, "EPSG:27700")
+	Call ARRAYAddValueString(marrCoordsysNames, "British National Grid, EPGS:27700")
+	Call ARRAYAddValueString(marrCoordsysCodes, "EPSG:5846")
+	Call ARRAYAddValueString(marrCoordsysNames, "Sweref99 12 00, EPGS:5846")
 	Call ARRAYAddValueString(marrCoordsysCodes, "UTMZ32NE89")
-	Call ARRAYAddValueString(marrCoordsysNames, "UTM Zone 32N ETRS89")
+	Call ARRAYAddValueString(marrCoordsysNames, "UTM Zone 32N ETRS89, EPGS:25832")
 
 	nItem = ARRAYFindValueString(marrTables, sTableName)
 	If nItem = 0 Then
