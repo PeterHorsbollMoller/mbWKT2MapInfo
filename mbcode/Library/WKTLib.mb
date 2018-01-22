@@ -38,6 +38,9 @@ OnError GoTo ErrorOccured
 '	POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10),(20 30, 35 35, 30 20, 20 30))
 
 	sType = Left$(sWKT, InStr(1, sWKT, " ") - 1)
+	If InStr(1, sType, "(") > 0 Then
+		sType = Left$(sWKT, InStr(1, sWKT, "(") - 1)
+	End If
 	Call DEBUGPrint(sType & ": " & sWKT)
 
 	Do Case sType

@@ -14,8 +14,8 @@ Include "Library\Defaults.def"
 
 Define xProgram 		"WKT2MapInfo"
 Define xProgramMenu		"WKT2MapInfo"
-Define xVersion 		"1.1"
-Define xYear			"2016"
+Define xVersion 		"1.11"
+Define xYear			"2018"
 Define xAddToMenuBar	FALSE
 
 Define FILE_INI			GetFolderPath$(FOLDER_MI_PREFERENCE) & xProgram & ".ini"
