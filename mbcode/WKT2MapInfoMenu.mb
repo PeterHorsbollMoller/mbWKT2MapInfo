@@ -6,15 +6,15 @@
 '*******************************************************************************
 
 '-------------------------------------
-Include "Library\MapBasic.def"
-Include "Library\Icons.def"
-Include "Library\Menu.def"
+Include "MapBasic.def"
+Include "Icons.def"
+Include "Menu.def"
 '**default constants...
 Include "Library\Defaults.def"
 
 Define xProgram 		"WKT2MapInfo"
 Define xProgramMenu		"WKT2MapInfo"
-Define xVersion 		"1.11"
+Define xVersion 		"1.20"
 Define xYear			"2018"
 Define xAddToMenuBar	FALSE
 
@@ -51,6 +51,9 @@ Declare Function MENUSaveCopyAs(		ByVal sTab As String
 								) As String
 Declare Function MENUUpdateSpatial(	ByVal sTab As String
 								) As Logical
+Declare Function MENUUpdateSpatialWKT(	  ByVal sTab As String
+								, ByVal sColumnWKT As String
+								) As Logical
 
 Declare Sub MENUGetDBMSSettingsFromTable(ByVal sTab As String)
 Declare Function MENUUpdateSpatialViaDBMS(	  ByVal sTab As String
@@ -84,30 +87,41 @@ OnError GoTo ErrorOccured
 	'***Enabling Debug if file exists
 	Call DEBUGEnableByFile(FILE_DBG)
 
-	Create Menu xProgramMenu As
-		"Open and map a table with WKT..."
-			HelpMsg "Open and map a table with Well Known Text features"
-			Calling MENUOpenTableWKT2MIObj,
-		"Map a table with WKT..."
-			HelpMsg "Map a table with Well Known Text features"
-			Calling MENUTableWKT2MIObj,
-		"(-",
-		"End program"
-			Calling EndProgram,
-		"About..."
-			Calling PRGIAboutbox
+	If SystemInfo(SYS_INFO_MAPINFO_INTERFACE) = MIINTERFACE_CLASSICMENU Then
+		Create Menu xProgramMenu As
+			"Open and map a table with WKT..."
+				HelpMsg "Open and map a table with Well Known Text features"
+				Calling MENUOpenTableWKT2MIObj,
+			"Map a table with WKT..."
+				HelpMsg "Map a table with Well Known Text features"
+				Calling MENUTableWKT2MIObj,
+			"(-",
+			"End program"
+				Calling EndProgram,
+			"About..."
+				Calling PRGIAboutbox
 
-	If xAddToMenuBar Then
-		'Remove the Window menu and Help menu
-		Alter Menu Bar Remove ID 6, ID 7
-		'Add the custom menu, then the Window & Help menus
-		Alter Menu Bar Add xProgramMenu, ID 6, ID 7
+		If xAddToMenuBar Then
+			'Remove the Window menu and Help menu
+			Alter Menu Bar Remove ID 6, ID 7
+			'Add the custom menu, then the Window & Help menus
+			Alter Menu Bar Add xProgramMenu, ID 6, ID 7
+		Else
+			Alter Menu ID 4
+				Add "(-", xProgramMenu  As xProgramMenu
+		End If
 	Else
-		Alter Menu ID 4
-			Add "(-", xProgramMenu  As xProgramMenu
+		Alter Menu ID 4 Add
+			"Open and map a table with WKT..."
+				HelpMsg "Open and map a table with Well Known Text features"
+				Calling MENUOpenTableWKT2MIObj,
+			"Map a table with WKT..."
+				HelpMsg "Map a table with Well Known Text features"
+				Calling MENUTableWKT2MIObj
 	End If
 
 	Call DLGCTSetColumnNameID(CONFIGReadKey(FILE_INI, "DATABASE", "PRINX COLUMN"))
+	Call DLGCTSetColumnNameSpatial(CONFIGReadKey(FILE_INI, "DATABASE", "WKT COLUMN"))
 	Call DLGCTSetCoordsysCode(CONFIGReadKey(FILE_INI, "DATABASE", "COORDSYS"))
 
 	Exit Sub
@@ -218,6 +232,8 @@ MENUCreateObjectsOnTable = FALSE
 	End If
 
 	sTab	= DLGCTGetTableName()
+	Call DEBUGPrint("Table: " & DLGCTGetTableName())
+	Call DEBUGPrint("Spatial: " & DLGCTGetColumnNameSpatial())
 
 	'**Read Connection String and Query from a DMBS table (linked or Live)
 	Call MENUGetDBMSSettingsFromTable(sTab)
@@ -244,7 +260,7 @@ MENUCreateObjectsOnTable = FALSE
 				Create Map
 					For sTab
 					CoordSys Earth Projection 1, 104
-			Case "UTMZ32NE89"
+			Case "UTMZ32NE89", "EPSG:25832"
 				Create Map
 					For sTab
 					CoordSys Earth Projection 8, 115, 7, 9.0, 0, 0.9996, 500000, 0
@@ -255,7 +271,8 @@ MENUCreateObjectsOnTable = FALSE
 			Case "EPSG:27700"
 				Create Map
 					For sTab
-					CoordSys Earth Projection 8, 79, 7, -2, 49, 0.9996012717, 400000, -100000
+					Coordsys Earth Projection 2008, 79, 7, -2, 49,0.9996012717, 400000, -100000, 0, -100000, 2000000, 1900000
+					'CoordSys Earth Projection 8, 79, 7, -2, 49, 0.9996012717, 400000, -100000
 			Case Else
 				Create Map
 					For sTab
@@ -266,8 +283,8 @@ MENUCreateObjectsOnTable = FALSE
 
 	Set CoordSys Table sTab
 
-	If NOT MENUUpdateSpatial(sTab) Then
-		Note "No spatial column found in the table that you selected!"
+	If NOT MENUUpdateSpatialWKT(sTab, DLGCTGetColumnNameSpatial()) Then
+		Note "Error occured while converting WKT to MapInfo OBJ"
 		Exit Sub
 	End If
 
@@ -433,6 +450,48 @@ ErrorOccured:
 	Call ERRShow()
 
 End Function
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'	:
+'Return value:
+'
+'**********************************************************************************************''
+Function MENUUpdateSpatialWKT(  ByVal sTab As String
+						, ByVal sColumnWKT As String
+						) As Logical
+
+Dim	aCol As Alias
+
+OnError GoTo ErrorOccured
+
+MENUUpdateSpatialWKT = FALSE
+
+	If DLGCTUseDatabaseLookup() Then
+		Call DEBUGPrint("Updating OBJ via DBMS Lookup")
+		If MENUUpdateSpatialViaDBMS(sTab, sColumnWKT) Then
+			MENUUpdateSpatialWKT = TRUE
+			Exit Function
+		End If
+	Else
+		Call DEBUGPrint("1. Updating OBJ via WKT Column in " & sTab)
+		Set Table sTab FastEdit On Undo Off
+		aCol = sTab & "." & sColumnWKT
+		Update sTab Set OBJ = WKTText2MIObj(aCol)
+		Commit Table sTab
+		MENUUpdateSpatialWKT = TRUE
+		Exit Function
+	End If
+
+	Exit Function
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUUpdateSpatialWKT")
+	Call ERRShow()
+
+End Function
+
 
 '**********************************************************************************************''
 'Created by Peter Horsbøll Møller, Pitney Bowes Software

@@ -1,5 +1,10 @@
 '********************************************************
-'07-08-2014 13:05:56	Added support for multiple language files
+'	07-08-2014 13:05:56		Added support for multiple language files
+'						- RESSTRNGGetString(...) As String
+'						- RESSTRNGLoadStrings(...) As Logical
+'	30-04-2015 11:02:26		Added:
+'						- RESSTRNGSetStringFilesFolder(...)
+'						- RESSTRNGGetStringFilesFolder() As String
 '********************************************************
 '**The string ini file has this structure in the string file:
 '[ADMIN]
@@ -13,7 +18,6 @@
 ' Public functions
 Declare Function RESSTRNGGetString(ByVal iResId As Integer) As String
 
-' Prototypes
 Declare Function RESSTRNGLoadStrings(ByVal FileName As String) As Logical
 
 ' Languages in a INI file type
@@ -30,3 +34,5 @@ Declare Function RESSTRNGGetStringFiles(  arrFiles() As String
 								, arrlanguages() As String) As Integer		'Returns lists of language files and their languages
 Declare Function RESSTRNGGetLanguages(  arrlanguages() As String) As Integer		'Returns lists of languages
 
+Declare Sub RESSTRNGSetStringFilesFolder(ByVal sPath As String)
+Declare Function RESSTRNGGetStringFilesFolder() As String

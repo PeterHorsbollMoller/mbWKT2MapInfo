@@ -21,6 +21,16 @@ Type T_LABEL_SETTINGS
 	bPartialSegments	As Logical
 	nOrientation		As Integer
 	nAlpha			As Integer
+	bAutoPosition		As Logical
+	bAutoSizes		As Logical
+	bSuppressIfNotFit	As Logical
+	nAutoSizeStes		As SmallInt
+	bCurvedBestPostion	As Logical
+	bCurvedFallback	As Logical
+	bUseAbbreviation	As Logical
+	sAbbreviationExpr	As String
+	bAutoCallOut		As Logical
+	nLabelOrder		As SmallInt
 End Type
 
 Declare Sub tlbsCopy(  tlbsFrom As T_LABEL_SETTINGS	'Source T_LABEL_SETTINGS

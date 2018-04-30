@@ -21,6 +21,8 @@ Type T_LAYER_SETTINGS
 	brsOverride()		As Brush
 	symOverride()		As Symbol
 	fntOverride()		As Font
+	bTrancparency		As Logical
+	nTransparencyColour	As Integer
 End Type
 
 Declare Sub tlsCopy(  tlsFrom As T_LAYER_SETTINGS	'Source T_LAYER_SETTINGS

@@ -1,0 +1,13 @@
+Declare Function DLGSelectTableAndColumn( ByVal nTableTypesToUse As Integer
+								, ByVal sTitle As String
+								, ByVal sTitleTableList As String
+								, ByVal sDefaultTableName As String
+								, ByVal nColumnTypesToUse As Integer
+								, ByVal sTitleColumnList As String
+								, ByVal sDefaultColumnName As String
+								, ByVal sOpenButtonTitle As String
+								, ByVal bAllowUserToOpen As Logical
+								) As Logical
+
+Declare Function DLGSTCGetTableName() As String
+Declare Function DLGSTCGetColumnName() As String

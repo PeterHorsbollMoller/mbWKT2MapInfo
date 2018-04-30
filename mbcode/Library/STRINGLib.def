@@ -3,6 +3,8 @@
 '**********************************************************************************************************************
 '	18-01-2012 	- Added STRINGLogicalToText(...) As String
 '	11.03.2013	- Added STRINGContainsOnlyNumbers(...) As Logical
+'	28-02-2015 	- Added STRINGReplacePosition(...) As Logical
+'	30-04-2015 	- Added STRINGConcatenateWithSeparator(...) As String
 '**********************************************************************************************************************
 'Requires MapInfo Pro 4.0
 
@@ -31,6 +33,12 @@ Declare Function STRINGReplace(	  ByVal sToBeSearched As String	'Text to be sear
 							, ByVal sSearchFor As String		'text to search for
 							, ByVal sReplaceWith As String	'text to replace the found text with
 							) As String					'returns the text where the value has been replaced
+Declare Function STRINGReplacePosition(	  ByVal sToBeSearched As String	'Text to be searched
+								, ByVal sSearchFor As String		'text to search for
+								, ByVal sReplaceWith As String	'text to replace the found text with
+								, ByVal nStartPosition As Integer	'Position to start search
+								) As String					'returns the text where the value has been replaced
+
 
 Declare Function STRINGGetValueBetweenChars(	  ByVal sText As String		'Text to extract a certain value from
 								, ByVal sStartChar As String	'Start character, could be "[", "(" or any character
@@ -38,3 +46,8 @@ Declare Function STRINGGetValueBetweenChars(	  ByVal sText As String		'Text to e
 								) As String				'returns the first text between the two characters
 Declare Function STRINGContainsOnlyNumbers(	ByVal sText As String	'the text to check
 									) As Logical			'return true if all characters int he text are numerical (0-9)
+
+Declare Function STRINGConcatenateWithSeparator(	  ByVal sFirst As String		'First part of the concatenated string
+										, ByVal sLast As String		'Last part of the concatenated string
+										, ByVal sSeparator As String	'Separator between the two string, only used if both are not equal to ""
+										) As String
