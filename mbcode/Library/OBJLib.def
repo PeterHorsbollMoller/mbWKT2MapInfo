@@ -26,8 +26,17 @@
 '							Uses a binary search algorytm to find the nearest node
 '							Splits the object into two half for each run thru and searches only the part where the node is within the MBR
 '	08-08-2014 18:16:44	- Fixed an error in OBJFindNodeBinary that meant that the wrong node was return in a number of cases
+'	06-11-2018 16:58:41	- Added:
+'						- OBJDirection(...) As Float
+'						- OBJCartesianCreatePointAlong(...) As Object
+'	03-09-2021 08:16:17	- Added
+'						- OBJCreateTrapez(...) As Object
+'						- OBJCartesianCreateArrowHead(...) As Object
 '**************************************************************
 'Requires MapInfo Pro 4.0
+
+Define	CALC_METHOD_CARTESIAN		1
+Define	CALC_METHOD_SPERICAL		2
 
 Declare Function OBJIsInitialized(ByVal oObj As Object) As Logical
 
@@ -53,7 +62,7 @@ Declare Function OBJRemoveDuplicateNodes( ByVal oObj As Object		'The object (pol
 
 Declare Function OBJReverse(	  ByVal oObj As Object			'The object which node order to reverse, only line and polyline are supported
 						) As Object					'Returns the object with the nodes in reversed order
-Declare Function OBJReversePolyline(  ByVal oPLine As Object	'The polyline which node order to reverse, only is supported
+Declare Function OBJReversePolyline(  ByVal oPLine As Object	'The polyline which node order to reverse, only pline is supported
 							) As Object				'Returns the polyline with the nodes in reversed order
 Declare Function OBJReverseLine(	  ByVal oLine As Object		'The line which node order to reverse, only line is supported
 							) As Object				'Returns the line with the nodes in reversed order
@@ -78,3 +87,45 @@ Declare Function OBJAddNodeOnPolyline(	  ByVal oPolyline As Object		'The polylin
 								, ByVal fTolerance As Float		'The tolerance distance, m, that determines if the node is on the line
 								) As Object					'Returns the polyline with the added node.
 															'The node will be added to the first line where the distance from the node to the line is shorter than fTolerance
+Declare Function OBJDirection(	ByVal oInput As Object			'The object to calculate the direction off, only works with projected coordinate systems
+							) As Float					'Direction of object, 360 degrees, East = 0, counter-clockwise, unsupported objects return -1
+Declare Function OBJDirectionWtAvg(  ByVal oInput As Object			'The object to calculate the direction off, only works with projected coordinate systems
+							) As Float					'Direction of object, 360 degrees, East = 0, counter-clockwise, unsupported objects return -1
+Declare Function OBJDirectionMedian(	  ByVal oInput As Object			'The object to calculate the direction off, only works with projected coordinate systems
+								) As Float					'Direction of object, 360 degrees, East = 0, counter-clockwise, unsupported objects return -1
+
+
+Declare Function OBJCartesianCreatePointAlong(	  ByVal oPolyline As Object	'The polyline to create the point along
+										, ByVal fDistance As Float	'Distance along polyline, can also be negative
+										, ByVal fOffset As Float		'Offset from polyline, negative is left, positive is right
+										) As Object
+Declare Function OBJCombineFromTable(	  ByVal sTab As String
+								, ByVal sCol As String
+								, ByVal sID As String
+								) As Object
+
+'In MapInfo 360 degrees. 0 towards east and counter clockwise
+Declare Function OBJCreateTrapez(	  ByVal oStartPoint As Object			'Start point using current session coordinate system
+							, ByVal fDirection As Float			'Direction from the start point
+							, ByVal fLength As Float				'Width at starting point, if zero geometry will be a triangle
+							, ByVal fWidthAtStart As Float		'Width at start point, if zero geometry will be a triangle
+							, ByVal fWidthAtEnd As Float			'Width at end point, if zero geometry will be a triangle
+							, ByVal bCreateMidpoint As Logical		'Determines if the trapez should have a node at the mid point on the two parallel sides
+							, ByVal nCalculationMethod As Integer	'CALC_METHOD_CARTESIAN / CALC_METHOD_SPERICAL: Use Offset or CartesianOffset
+							) As Object
+'In MapInfo 360 degrees. 0 towards east and counter clockwise
+Declare Function OBJCreateTriangle(  ByVal oStartPoint As Object			'Start point using current session coordinate system
+							, ByVal fDirection As Float			'Direction from the start point
+							, ByVal fLength As Float				'Width at starting point, if zero geometry will be a triangle
+							, ByVal fWidthAtEnd As Float			'Width at end point
+							, ByVal bCreateMidpoint As Logical		'Determines if the triangle should have a node at the mid point on the end side
+							, ByVal nCalculationMethod As Integer	'CALC_METHOD_CARTESIAN / CALC_METHOD_SPERICAL: Use Offset or CartesianOffset
+							) As Object
+
+Declare Function OBJCartesianCreateArrowHead(  ByVal oPline As Object
+									, ByVal nArrowType As Integer		'1: Pointy, 2: Flat, 3: Rounded
+									, ByVal fWidth As Float			'in meters
+									, ByVal fLength As Float			'in meters
+									, ByVal nResolution As Integer	'Only used for rounded arrow heads
+									) As Object
+

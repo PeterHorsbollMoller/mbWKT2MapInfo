@@ -1,5 +1,5 @@
 [LINK]
-Application=..\WKT2MapInfo.mbx
+Application=..\WKT2MapInfo\WKT2MapInfo.mbx
 Module=Library\ARRAYLib.mbo
 Module=Library\COLUMNLib.mbo
 Module=Library\CONFIGFILELib.mbo
@@ -12,6 +12,7 @@ Module=Library\FILELib.mbo
 Module=Library\MAPPERLib.mbo
 Module=Library\ProgramInfo.mbo
 Module=Library\RESSTRNGLib.mbo
+Module=Library\RIBBONLib.mbo
 Module=Library\STRINGLib.mbo
 Module=Library\STYLELib.mbo
 Module=Library\TABLELib.mbo

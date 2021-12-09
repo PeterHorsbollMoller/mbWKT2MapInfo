@@ -489,7 +489,7 @@ Sub DLGCTSetColumnNameSpatial(ByVal sColumnName As String)
 
 OnError GoTo ErrorOccured
 
-	Print "Setting Spatial Column to " & sColumnName
+'	Print "Setting Spatial Column to " & sColumnName
 	msColumnSpatial	= sColumnName
 	Exit Sub
 '-------------------------

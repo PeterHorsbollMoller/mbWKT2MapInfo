@@ -14,14 +14,15 @@ Include "Library\Defaults.def"
 
 Define xProgram 		"WKT2MapInfo"
 Define xProgramMenu		"WKT2MapInfo"
-Define xVersion 		"1.20"
-Define xYear			"2018"
+Define xVersion 		"1.30"
+Define xYear			"2021"
 Define xAddToMenuBar	FALSE
 
-Define FILE_INI			GetFolderPath$(FOLDER_MI_PREFERENCE) & xProgram & ".ini"
-Define FILE_DBG			ApplicationDirectory$() & xProgram & ".dbg"
-'Define FILE_DLL			ApplicationDirectory$() & xProgram & ".dll"
-Define FILE_PAD			GetFolderPath$(FOLDER_MI_PREFERENCE) & xProgram & ".btp"
+Define FILE_INI		GetFolderPath$(FOLDER_MI_PREFERENCE) & xProgram & ".ini"
+Define FILE_DBG		ApplicationDirectory$() & xProgram & ".dbg"
+'Define FILE_DLL		ApplicationDirectory$() & xProgram & ".dll"
+Define FILE_PAD		GetFolderPath$(FOLDER_MI_PREFERENCE) & xProgram & ".btp"
+Define PATH_IMAGES		ApplicationDirectory$() & "Icons\"
 
 '-------------------------------------
 Include "Library\COLUMNLib.def"
@@ -32,6 +33,7 @@ Include "Library\DEBUGLib.def"
 Include "Library\ERRORLib.def"
 Include "Library\MAPPERLib.def"
 Include "Library\ProgramInfo.def"
+Include "Library\RIBBONLib.def"
 Include "Library\STRINGLib.def"
 Include "Library\TABLELib.def"
 Include "Library\WKTLib.def"
@@ -45,6 +47,7 @@ Declare Sub EndProgram
 
 Declare Sub MENUOpenTableWKT2MIObj
 Declare Sub MENUTableWKT2MIObj
+Declare Sub MENUShowWKTFunctionHelp
 Declare Function MENUCreateObjectsOnTable(ByVal sTableName As String) As Logical
 
 Declare Function MENUSaveCopyAs(		ByVal sTab As String
@@ -76,6 +79,8 @@ Dim	msConnString, msQuery As String
 '**********************************************************************************************''
 Sub Main
 
+Dim	bResult As Logical
+
 OnError GoTo ErrorOccured
 
 	'***Initializing ApplicationInfo
@@ -83,6 +88,7 @@ OnError GoTo ErrorOccured
 	Call PRGISetApplicationVersion(xVersion)
 	Call PRGISetApplicationCopyrightYear(xYear)
 	Call PRGISetApplicationDevelopedBy("Peter Horsbøll Møller")
+	Call PRGISetApplicationImageUri(PATH_IMAGES + "WKTPolygon_32.png")
 
 	'***Enabling Debug if file exists
 	Call DEBUGEnableByFile(FILE_DBG)
@@ -117,12 +123,17 @@ OnError GoTo ErrorOccured
 				Calling MENUOpenTableWKT2MIObj,
 			"Map a table with WKT..."
 				HelpMsg "Map a table with Well Known Text features"
-				Calling MENUTableWKT2MIObj
+				Calling MENUTableWKT2MIObj,
+			"How to use WKTText2MIPolygon function..."
+				HelpMsg "Shows how you can use the WKTText2MIPolygon function to convert WKT to OBJ"
+				Calling MENUShowWKTFunctionHelp
 	End If
 
 	Call DLGCTSetColumnNameID(CONFIGReadKey(FILE_INI, "DATABASE", "PRINX COLUMN"))
 	Call DLGCTSetColumnNameSpatial(CONFIGReadKey(FILE_INI, "DATABASE", "WKT COLUMN"))
 	Call DLGCTSetCoordsysCode(CONFIGReadKey(FILE_INI, "DATABASE", "COORDSYS"))
+
+	bResult = RBNRegisterFunctionAsPublic("WKTText2MIPolygon", "WKTText2MIPolygon", "Lets you convert a WKT string to a MapInfo spatial object")
 
 	Exit Sub
 '-------------------------
@@ -145,6 +156,55 @@ OnError GoTo ErrorOccured
 '-------------------------
 ErrorOccured:
 	Call ERRCreate(Err(), Error$(), "EndProgram")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Precisely
+'Parameters:
+'
+'**********************************************************************************************''
+Sub MENUShowWKTFunctionHelp
+
+OnError GoTo ErrorOccured
+
+	Dialog
+		Title "Using WKTText2MIPolygon function"
+
+		Control StaticText
+			Position 10,10
+			Width 400	Height 40
+			Title "You can use the function WKTText2MIPolygon to convert WKT text strings to MapInfo Objects."
+				& Chr$(10) & "Below you can see a couple of examples that you can copy from the dialog and paste into the MapBasic or SQL window."
+				& Chr$(10) & "The examples assume the coordsys is Lat/Long WGS84"
+
+		Control EditText
+			Position 10,50
+			Width 400	Height 45
+			Value "Set Coordsys Earth Projection 1, 104" + Chr$(10) + "Update SOME_TABLE" + Chr$(10) + " Set OBJ = WKTText2MIPolygon(SOME_COLUMN)"
+
+		Control EditText
+			Position 10,100
+			Width 400	Height 45
+			Value "Set Coordsys Earth Projection 1, 104" + Chr$(10) + "Update SOME_TABLE" + Chr$(10) + " Set OBJ = WKTText2MIPolygon(""POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"")"
+
+		Control EditText
+			Position 10,150
+			Width 400	Height 45
+			Value "Set Coordsys Earth Projection 1, 104" + Chr$(10) + "Insert Into SOME_TABLE (OBJ)" + Chr$(10) + " Values (WKTText2MIPolygon(""POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))""))"
+
+		Control EditText
+			Position 10,200
+			Width 400	Height 45
+			Value "Set Coordsys Earth Projection 1, 104" + Chr$(10) + "Insert Into WindowInfo(FrontWindow(), WIN_INFO_TABLE) (OBJ)" + Chr$(10) + " Values (WKTText2MIPolygon(""POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))""))"
+
+		Control OKButton
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUShowWKTFunctionHelp")
 	Call ERRShow()
 
 End Sub

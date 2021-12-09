@@ -19,6 +19,14 @@
 '						- Function AddIn_Version() As String
 '						- Function AddIn_ImageUri() As String
 '13-09-2014 13:24:51	Fixed an error in PRGIAbout_OnLoad so that languages now are shown in the About dialog
+'20-12-2019 09:18:31	Added:
+'					- Function PRGIGetApplicationLanguageCode() As String
+'					- Sub PRGISetApplicationUseLanguageCode(...)
+'					Changed
+'					- Support for language via code or name
+'					- Default URL to point to MapInfo Marketplace
+'					- Default Company to "Pitney Bowes Software & Data"
+'xx-xx-2020				- Default Company to "Precisely | Trust in Data"
 '********************************************************
 
 'When using this module, make sure to set these values in your main module
@@ -31,6 +39,9 @@
 '	Call PRGISetApplicationVersion(xVersion)
 '	Call PRGISetApplicationCopyrightYear(xYear)
 '	Call PRGISetApplicationDevelopedBy("Peter Horsbøll Møller")
+'	If Application supports multiple string/language files
+'	Call PRGISetApplicationUseLanguageCode(TRUE)
+'	Call PRGILoadLanguageStrings(msLanguage)
 '********************************************************
 'Set and get the Name of the Application, deafult is "unknown" or name of MBX if running on MI Pro 10.0 or newer
 Declare Sub PRGISetApplicationName(	ByVal sName As String)
@@ -41,13 +52,19 @@ Declare Function PRGIGetApplicationVersion() As String
 'Set and get the Copyright Year of the Application, default is Year(CurDate())
 Declare Sub PRGISetApplicationCopyrightYear(ByVal sYear As String)
 Declare Function PRGIGetApplicationCopyrightYear() As String
-'Set and get the Copyright Company of the Application, default is "Pitney Bowes Software"
+'Set and get a second Copyright Text of the Application
+Declare Sub PRGISetSecondCopyrightText(ByVal sValue As String)
+Declare Function PRGIGetSecondCopyrightText() As String
+'Set and get the Copyright Company of the Application, default is "Precisely"
+Declare Sub PRGISetCopyrightLicenseType(ByVal sValue As String)
+Declare Function PRGIGetCopyrightLicenseType() As String
+'Set and get the Copyright Licnse Type of the Application, default is ""
 Declare Sub PRGISetCopyrightCompany(ByVal sName As String)
 Declare Function PRGIGetCopyrightCompany() As String
+
 'Set and get the Description of the Application, default is [NAME] + " " [VERSION] + " Developed by " + [DEVELOPEDBY]
 Declare Sub PRGISetDescription(ByVal sDescription As String)
 Declare Function PRGIGetDescription() As String
-
 
 'Set and get the Name of the developer of the Application, default is "Pitney Bowes Software"
 Declare Sub PRGISetApplicationDevelopedBy(ByVal sName As String)
@@ -76,6 +93,9 @@ Declare Sub PRGISetApplicationLanguages(sLanguages() As String)	'Don't use any m
 Declare Sub PRGISetApplicationLanguage(iLanguage As Integer)	'Don't use any more - call PRGILoadLanguageStrings
 Declare Function PRGIGetApplicationLanguage() As Integer
 Declare Function PRGIGetApplicationLanguageName() As String
+Declare Function PRGIGetApplicationLanguageCode() As String
+
+Declare Sub PRGISetApplicationUseLanguageCode(ByVal bValue As Logical)
 
 Declare Sub PRGILoadLanguageStrings(ByVal sLanguage As String)
 
